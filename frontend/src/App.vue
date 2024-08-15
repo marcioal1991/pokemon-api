@@ -1,23 +1,41 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import axios from 'axios';
+import { ref } from 'vue';
+
+const pokemons = ref([]);
+
+axios.get('http://localhost:8000/pokemons').then(function (results) {
+  console.log(results)
+  results.data.data.forEach(function (item) {
+    pokemons.value.push(item);
+  });
+});
+
+
 </script>
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Tipo</th>
+          <th>Peso (g)</th>
+          <th>Altura (m)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="pokemon in pokemons">
+          <th>{{ pokemon.name }}</th>
+          <th>{{ pokemon.type }}</th>
+          <th>{{ pokemon.weight }}</th>
+          <th>{{ pokemon.height }}</th>
+        </tr>
+      </tbody>
+    </table>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
   </header>
-
-  <RouterView />
 </template>
 
 <style scoped>
