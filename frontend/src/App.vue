@@ -1,103 +1,74 @@
 <script setup>
 import axios from 'axios';
-import { ref } from 'vue';
+import {onMounted, ref} from 'vue';
+import Table from "@/components/PokemonTable/Table.vue";
+import Pagination from "@/components/PokemonTable/Pagination.vue";
 
 const pokemons = ref([]);
+const previous = ref(null);
+const next = ref(null);
+const loading = ref(false);
+const currentPage = ref(0);
+const totalPages = ref(0);
 
-axios.get('http://localhost:8000/pokemons').then(function (results) {
-  console.log(results)
-  results.data.data.forEach(function (item) {
-    pokemons.value.push(item);
+async function paginate(url) {
+  pokemons.value = [];
+  loading.value = true;
+
+  // Poderia criar um Api.js ou uma estrutura para controlar essas requisições, mas como é só para realizar a paginação da tabela
+  // não vi necessidade, pois esta sendo utilizado a própria paginação fornecida da api do laravel
+  await axios.get(url).then(function (results) {
+    next.value = results.data.links.next;
+    previous.value = results.data.links.prev;
+    totalPages.value = results.data.meta.last_page
+    currentPage.value = results.data.meta.current_page
+
+    results.data.data.forEach(function (item) {
+      pokemons.value.push(item);
+    });
+  }).finally(() => {
+    loading.value = false;
   });
-});
+}
 
+onMounted(() => {
+  paginate('/pokemons');
+});
 
 </script>
 
 <template>
-  <header>
-    <table>
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Tipo</th>
-          <th>Peso (g)</th>
-          <th>Altura (m)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="pokemon in pokemons">
-          <th>{{ pokemon.name }}</th>
-          <th>{{ pokemon.type }}</th>
-          <th>{{ pokemon.weight }}</th>
-          <th>{{ pokemon.height }}</th>
-        </tr>
-      </tbody>
-    </table>
-
-  </header>
+  <div class='container has-text-centered'>
+    <div class='columns is-mobile is-centered'>
+      <div class='column is-12'>
+        <div>
+          <h1 class='title'>Pokemons</h1>
+          <hr>
+        </div>
+        <Table class="container" :items="pokemons"/>
+        <Pagination
+                  :loading="loading"
+                    @paginate="paginate"
+                    :next="next"
+                    :current-page="currentPage"
+                    :total-pages="totalPages"
+                    :previous="previous"/>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+
+h1 {
+  margin-bottom: 20px;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.table td {
+  font-size: 17px
 }
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.table th {
+  font-size: 17px
 }
 </style>

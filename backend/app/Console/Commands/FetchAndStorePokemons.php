@@ -28,9 +28,12 @@ class FetchAndStorePokemons extends Command
     {
         $pokemons = \Http::get('https://pokeapi.co/api/v2/pokemon/?limit=1500')->json();
 
+        $this->output->progressStart($pokemons['count']);
+
         \DB::transaction(function () use ($pokemons) {
-            $count = 0;
+
             foreach ($pokemons['results'] as $pokemon) {
+                $this->output->progressAdvance();
                 $details = \Http::get($pokemon['url'])->json();
 
                 $type = \Arr::first($details['types']) ?? null;
@@ -40,9 +43,9 @@ class FetchAndStorePokemons extends Command
                 $newPoke->weight = $details['weight'];
                 $newPoke->height = $details['height'];
                 $newPoke->save();
-                dump($count++);
             }
         });
+        $this->output->progressFinish();
 
         $this->info(sprintf('Foram salvos %d pokemons', Pokemon::query()->count()));
     }

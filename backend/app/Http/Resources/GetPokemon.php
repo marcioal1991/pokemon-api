@@ -18,6 +18,7 @@ class GetPokemon extends JsonResource
         /** @var Pokemon $pokemon */
         $pokemon = $this->resource;
         return [
+            'id' => $pokemon->getKey(),
             'name' => $pokemon->name,
             'type' => $pokemon->type,
             'weight' => $pokemon->weight * 100,
